@@ -1,188 +1,128 @@
-/*!
- * mime-types
- * Copyright(c) 2014 Jonathan Ong
- * Copyright(c) 2015 Douglas Christopher Wilson
- * MIT Licensed
- */
-
-'use strict'
-
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.GridFSBucket = void 0;
+const error_1 = require("../error");
+const mongo_types_1 = require("../mongo_types");
+const write_concern_1 = require("../write_concern");
+const download_1 = require("./download");
+const upload_1 = require("./upload");
+const DEFAULT_GRIDFS_BUCKET_OPTIONS = {
+    bucketName: 'fs',
+    chunkSizeBytes: 255 * 1024
+};
 /**
- * Module dependencies.
- * @private
- */
-
-var db = require('mime-db')
-var extname = require('path').extname
-
-/**
- * Module variables.
- * @private
- */
-
-var EXTRACT_TYPE_REGEXP = /^\s*([^;\s]*)(?:;|\s|$)/
-var TEXT_TYPE_REGEXP = /^text\//i
-
-/**
- * Module exports.
+ * Constructor for a streaming GridFS interface
  * @public
  */
-
-exports.charset = charset
-exports.charsets = { lookup: charset }
-exports.contentType = contentType
-exports.extension = extension
-exports.extensions = Object.create(null)
-exports.lookup = lookup
-exports.types = Object.create(null)
-
-// Populate the extensions/types maps
-populateMaps(exports.extensions, exports.types)
-
-/**
- * Get the default charset for a MIME type.
- *
- * @param {string} type
- * @return {boolean|string}
- */
-
-function charset (type) {
-  if (!type || typeof type !== 'string') {
-    return false
-  }
-
-  // TODO: use media-typer
-  var match = EXTRACT_TYPE_REGEXP.exec(type)
-  var mime = match && db[match[1].toLowerCase()]
-
-  if (mime && mime.charset) {
-    return mime.charset
-  }
-
-  // default text/* to utf-8
-  if (match && TEXT_TYPE_REGEXP.test(match[1])) {
-    return 'UTF-8'
-  }
-
-  return false
-}
-
-/**
- * Create a full Content-Type header given a MIME type or extension.
- *
- * @param {string} str
- * @return {boolean|string}
- */
-
-function contentType (str) {
-  // TODO: should this even be in this module?
-  if (!str || typeof str !== 'string') {
-    return false
-  }
-
-  var mime = str.indexOf('/') === -1
-    ? exports.lookup(str)
-    : str
-
-  if (!mime) {
-    return false
-  }
-
-  // TODO: use content-type or other module
-  if (mime.indexOf('charset') === -1) {
-    var charset = exports.charset(mime)
-    if (charset) mime += '; charset=' + charset.toLowerCase()
-  }
-
-  return mime
-}
-
-/**
- * Get the default extension for a MIME type.
- *
- * @param {string} type
- * @return {boolean|string}
- */
-
-function extension (type) {
-  if (!type || typeof type !== 'string') {
-    return false
-  }
-
-  // TODO: use media-typer
-  var match = EXTRACT_TYPE_REGEXP.exec(type)
-
-  // get extensions
-  var exts = match && exports.extensions[match[1].toLowerCase()]
-
-  if (!exts || !exts.length) {
-    return false
-  }
-
-  return exts[0]
-}
-
-/**
- * Lookup the MIME type for a file path/extension.
- *
- * @param {string} path
- * @return {boolean|string}
- */
-
-function lookup (path) {
-  if (!path || typeof path !== 'string') {
-    return false
-  }
-
-  // get the extension ("ext" or ".ext" or full path)
-  var extension = extname('x.' + path)
-    .toLowerCase()
-    .substr(1)
-
-  if (!extension) {
-    return false
-  }
-
-  return exports.types[extension] || false
-}
-
-/**
- * Populate the extensions and types maps.
- * @private
- */
-
-function populateMaps (extensions, types) {
-  // source preference (least -> most)
-  var preference = ['nginx', 'apache', undefined, 'iana']
-
-  Object.keys(db).forEach(function forEachMimeType (type) {
-    var mime = db[type]
-    var exts = mime.extensions
-
-    if (!exts || !exts.length) {
-      return
+class GridFSBucket extends mongo_types_1.TypedEventEmitter {
+    constructor(db, options) {
+        super();
+        this.setMaxListeners(0);
+        const privateOptions = {
+            ...DEFAULT_GRIDFS_BUCKET_OPTIONS,
+            ...options,
+            writeConcern: write_concern_1.WriteConcern.fromOptions(options)
+        };
+        this.s = {
+            db,
+            options: privateOptions,
+            _chunksCollection: db.collection(privateOptions.bucketName + '.chunks'),
+            _filesCollection: db.collection(privateOptions.bucketName + '.files'),
+            checkedIndexes: false,
+            calledOpenUploadStream: false
+        };
     }
-
-    // mime -> extensions
-    extensions[type] = exts
-
-    // extension -> mime
-    for (var i = 0; i < exts.length; i++) {
-      var extension = exts[i]
-
-      if (types[extension]) {
-        var from = preference.indexOf(db[types[extension]].source)
-        var to = preference.indexOf(mime.source)
-
-        if (types[extension] !== 'application/octet-stream' &&
-          (from > to || (from === to && types[extension].substr(0, 12) === 'application/'))) {
-          // skip the remapping
-          continue
+    /**
+     * Returns a writable stream (GridFSBucketWriteStream) for writing
+     * buffers to GridFS. The stream's 'id' property contains the resulting
+     * file's id.
+     *
+     * @param filename - The value of the 'filename' key in the files doc
+     * @param options - Optional settings.
+     */
+    openUploadStream(filename, options) {
+        return new upload_1.GridFSBucketWriteStream(this, filename, options);
+    }
+    /**
+     * Returns a writable stream (GridFSBucketWriteStream) for writing
+     * buffers to GridFS for a custom file id. The stream's 'id' property contains the resulting
+     * file's id.
+     */
+    openUploadStreamWithId(id, filename, options) {
+        return new upload_1.GridFSBucketWriteStream(this, filename, { ...options, id });
+    }
+    /** Returns a readable stream (GridFSBucketReadStream) for streaming file data from GridFS. */
+    openDownloadStream(id, options) {
+        return new download_1.GridFSBucketReadStream(this.s._chunksCollection, this.s._filesCollection, this.s.options.readPreference, { _id: id }, options);
+    }
+    /**
+     * Deletes a file with the given id
+     *
+     * @param id - The id of the file doc
+     */
+    async delete(id) {
+        const { deletedCount } = await this.s._filesCollection.deleteOne({ _id: id });
+        // Delete orphaned chunks before returning FileNotFound
+        await this.s._chunksCollection.deleteMany({ files_id: id });
+        if (deletedCount === 0) {
+            // TODO(NODE-3483): Replace with more appropriate error
+            // Consider creating new error MongoGridFSFileNotFoundError
+            throw new error_1.MongoRuntimeError(`File not found for id ${id}`);
         }
-      }
-
-      // set the extension -> mime
-      types[extension] = type
     }
-  })
+    /** Convenience wrapper around find on the files collection */
+    find(filter = {}, options = {}) {
+        return this.s._filesCollection.find(filter, options);
+    }
+    /**
+     * Returns a readable stream (GridFSBucketReadStream) for streaming the
+     * file with the given name from GridFS. If there are multiple files with
+     * the same name, this will stream the most recent file with the given name
+     * (as determined by the `uploadDate` field). You can set the `revision`
+     * option to change this behavior.
+     */
+    openDownloadStreamByName(filename, options) {
+        let sort = { uploadDate: -1 };
+        let skip = undefined;
+        if (options && options.revision != null) {
+            if (options.revision >= 0) {
+                sort = { uploadDate: 1 };
+                skip = options.revision;
+            }
+            else {
+                skip = -options.revision - 1;
+            }
+        }
+        return new download_1.GridFSBucketReadStream(this.s._chunksCollection, this.s._filesCollection, this.s.options.readPreference, { filename }, { ...options, sort, skip });
+    }
+    /**
+     * Renames the file with the given _id to the given string
+     *
+     * @param id - the id of the file to rename
+     * @param filename - new name for the file
+     */
+    async rename(id, filename) {
+        const filter = { _id: id };
+        const update = { $set: { filename } };
+        const { matchedCount } = await this.s._filesCollection.updateOne(filter, update);
+        if (matchedCount === 0) {
+            throw new error_1.MongoRuntimeError(`File with id ${id} not found`);
+        }
+    }
+    /** Removes this bucket's files collection, followed by its chunks collection. */
+    async drop() {
+        await this.s._filesCollection.drop();
+        await this.s._chunksCollection.drop();
+    }
 }
+/**
+ * When the first call to openUploadStream is made, the upload stream will
+ * check to see if it needs to create the proper indexes on the chunks and
+ * files collections. This event is fired either when 1) it determines that
+ * no index creation is necessary, 2) when it successfully creates the
+ * necessary indexes.
+ * @event
+ */
+GridFSBucket.INDEX = 'index';
+exports.GridFSBucket = GridFSBucket;
+//# sourceMappingURL=index.js.map
