@@ -1,5 +1,8 @@
-export * from "./FormDataEncoder.js";
-export * from "./FileLike.js";
-export * from "./FormDataLike.js";
-export * from "./util/isFileLike.js";
-export * from "./util/isFormData.js";
+'use strict';
+
+var hasSymbols = require('has-symbols');
+
+/** @type {import('.')} */
+module.exports = function hasToStringTag() {
+	return hasSymbols() && typeof Symbol.toStringTag === 'symbol';
+};
