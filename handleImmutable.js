@@ -2,27 +2,49 @@
 
 const StrictModeError = require('../../error/strict');
 
-module.exports = function handleImmutable(schematype, strict, obj, key, fullPath, ctx) {
-  if (schematype == null || !schematype.options || !schematype.options.immutable) {
-    return false;
-  }
-  let immutable = schematype.options.immutable;
+/*!
+ * ignore
+ */
 
-  if (typeof immutable === 'function') {
-    immutable = immutable.call(ctx, ctx);
+module.exports = function(schematype) {
+  if (schematype.$immutable) {
+    schematype.$immutableSetter = createImmutableSetter(schematype.path,
+      schematype.options.immutable);
+    schematype.set(schematype.$immutableSetter);
+  } else if (schematype.$immutableSetter) {
+    schematype.setters = schematype.setters.
+      filter(fn => fn !== schematype.$immutableSetter);
+    delete schematype.$immutableSetter;
   }
-  if (!immutable) {
-    return false;
-  }
-
-  if (strict === false) {
-    return false;
-  }
-  if (strict === 'throw') {
-    throw new StrictModeError(null,
-      `Field ${fullPath} is immutable and strict = 'throw'`);
-  }
-
-  delete obj[key];
-  return true;
 };
+
+function createImmutableSetter(path, immutable) {
+  return function immutableSetter(v, _priorVal, _doc, options) {
+    if (this == null || this.$__ == null) {
+      return v;
+    }
+    if (this.isNew) {
+      return v;
+    }
+    if (options && options.overwriteImmutable) {
+      return v;
+    }
+
+    const _immutable = typeof immutable === 'function' ?
+      immutable.call(this, this) :
+      immutable;
+    if (!_immutable) {
+      return v;
+    }
+
+    const _value = this.$__.priorDoc != null ?
+      this.$__.priorDoc.$__getValue(path) :
+      this.$__getValue(path);
+    if (this.$__.strictMode === 'throw' && v !== _value) {
+      throw new StrictModeError(path, 'Path `' + path + '` is immutable ' +
+        'and strict mode is set to throw.', true);
+    }
+
+    return _value;
+  };
+}
