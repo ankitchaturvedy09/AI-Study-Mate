@@ -1,44 +1,33 @@
 {
-  "author": {
-    "name": "Robert Kieffer",
-    "url": "http://github.com/broofa",
-    "email": "robert@broofa.com"
+  "author": "Isaac Z. Schlueter <i@izs.me> (http://blog.izs.me)",
+  "name": "minimatch",
+  "description": "a glob matcher in javascript",
+  "version": "3.1.2",
+  "publishConfig": {
+    "tag": "v3-legacy"
   },
-  "bin": {
-    "mime": "cli.js"
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/isaacs/minimatch.git"
+  },
+  "main": "minimatch.js",
+  "scripts": {
+    "test": "tap",
+    "preversion": "npm test",
+    "postversion": "npm publish",
+    "postpublish": "git push origin --all; git push origin --tags"
   },
   "engines": {
-    "node": ">=4"
+    "node": "*"
   },
-  "contributors": [
-    {
-      "name": "Benjamin Thomas",
-      "url": "http://github.com/bentomas",
-      "email": "benjamin@benjaminthomas.org"
-    }
-  ],
-  "description": "A comprehensive library for mime-type mapping",
-  "license": "MIT",
-  "dependencies": {},
+  "dependencies": {
+    "brace-expansion": "^1.1.7"
+  },
   "devDependencies": {
-    "github-release-notes": "0.13.1",
-    "mime-db": "1.31.0",
-    "mime-score": "1.1.0"
+    "tap": "^15.1.6"
   },
-  "scripts": {
-    "prepare": "node src/build.js",
-    "changelog": "gren changelog --tags=all --generate --override",
-    "test": "node src/test.js"
-  },
-  "keywords": [
-    "util",
-    "mime"
-  ],
-  "main": "mime.js",
-  "name": "mime",
-  "repository": {
-    "url": "https://github.com/broofa/node-mime",
-    "type": "git"
-  },
-  "version": "1.6.0"
+  "license": "ISC",
+  "files": [
+    "minimatch.js"
+  ]
 }
