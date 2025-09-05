@@ -1,79 +1,147 @@
-export const BITS = 128;
-export const GROUPS = 8;
+export const SYSTEM_NAMESPACE_COLLECTION = 'system.namespaces';
+export const SYSTEM_INDEX_COLLECTION = 'system.indexes';
+export const SYSTEM_PROFILE_COLLECTION = 'system.profile';
+export const SYSTEM_USER_COLLECTION = 'system.users';
+export const SYSTEM_COMMAND_COLLECTION = '$cmd';
+export const SYSTEM_JS_COLLECTION = 'system.js';
+
+// events
+export const ERROR = 'error' as const;
+export const TIMEOUT = 'timeout' as const;
+export const CLOSE = 'close' as const;
+export const OPEN = 'open' as const;
+export const CONNECT = 'connect' as const;
+export const CLOSED = 'closed' as const;
+export const ENDED = 'ended' as const;
+export const MESSAGE = 'message' as const;
+export const PINNED = 'pinned' as const;
+export const UNPINNED = 'unpinned' as const;
+export const DESCRIPTION_RECEIVED = 'descriptionReceived';
+export const SERVER_OPENING = 'serverOpening' as const;
+export const SERVER_CLOSED = 'serverClosed' as const;
+export const SERVER_DESCRIPTION_CHANGED = 'serverDescriptionChanged' as const;
+export const TOPOLOGY_OPENING = 'topologyOpening' as const;
+export const TOPOLOGY_CLOSED = 'topologyClosed' as const;
+export const TOPOLOGY_DESCRIPTION_CHANGED = 'topologyDescriptionChanged' as const;
+/** @internal */
+export const CONNECTION_POOL_CREATED = 'connectionPoolCreated' as const;
+/** @internal */
+export const CONNECTION_POOL_CLOSED = 'connectionPoolClosed' as const;
+/** @internal */
+export const CONNECTION_POOL_CLEARED = 'connectionPoolCleared' as const;
+/** @internal */
+export const CONNECTION_POOL_READY = 'connectionPoolReady' as const;
+/** @internal */
+export const CONNECTION_CREATED = 'connectionCreated' as const;
+/** @internal */
+export const CONNECTION_READY = 'connectionReady' as const;
+/** @internal */
+export const CONNECTION_CLOSED = 'connectionClosed' as const;
+/** @internal */
+export const CONNECTION_CHECK_OUT_STARTED = 'connectionCheckOutStarted' as const;
+/** @internal */
+export const CONNECTION_CHECK_OUT_FAILED = 'connectionCheckOutFailed' as const;
+/** @internal */
+export const CONNECTION_CHECKED_OUT = 'connectionCheckedOut' as const;
+/** @internal */
+export const CONNECTION_CHECKED_IN = 'connectionCheckedIn' as const;
+export const CLUSTER_TIME_RECEIVED = 'clusterTimeReceived' as const;
+export const COMMAND_STARTED = 'commandStarted' as const;
+export const COMMAND_SUCCEEDED = 'commandSucceeded' as const;
+export const COMMAND_FAILED = 'commandFailed' as const;
+export const SERVER_HEARTBEAT_STARTED = 'serverHeartbeatStarted' as const;
+export const SERVER_HEARTBEAT_SUCCEEDED = 'serverHeartbeatSucceeded' as const;
+export const SERVER_HEARTBEAT_FAILED = 'serverHeartbeatFailed' as const;
+export const RESPONSE = 'response' as const;
+export const MORE = 'more' as const;
+export const INIT = 'init' as const;
+export const CHANGE = 'change' as const;
+export const END = 'end' as const;
+export const RESUME_TOKEN_CHANGED = 'resumeTokenChanged' as const;
+
+/** @public */
+export const HEARTBEAT_EVENTS = Object.freeze([
+  SERVER_HEARTBEAT_STARTED,
+  SERVER_HEARTBEAT_SUCCEEDED,
+  SERVER_HEARTBEAT_FAILED
+] as const);
+
+/** @public */
+export const CMAP_EVENTS = Object.freeze([
+  CONNECTION_POOL_CREATED,
+  CONNECTION_POOL_READY,
+  CONNECTION_POOL_CLEARED,
+  CONNECTION_POOL_CLOSED,
+  CONNECTION_CREATED,
+  CONNECTION_READY,
+  CONNECTION_CLOSED,
+  CONNECTION_CHECK_OUT_STARTED,
+  CONNECTION_CHECK_OUT_FAILED,
+  CONNECTION_CHECKED_OUT,
+  CONNECTION_CHECKED_IN
+] as const);
+
+/** @public */
+export const TOPOLOGY_EVENTS = Object.freeze([
+  SERVER_OPENING,
+  SERVER_CLOSED,
+  SERVER_DESCRIPTION_CHANGED,
+  TOPOLOGY_OPENING,
+  TOPOLOGY_CLOSED,
+  TOPOLOGY_DESCRIPTION_CHANGED,
+  ERROR,
+  TIMEOUT,
+  CLOSE
+] as const);
+
+/** @public */
+export const APM_EVENTS = Object.freeze([
+  COMMAND_STARTED,
+  COMMAND_SUCCEEDED,
+  COMMAND_FAILED
+] as const);
 
 /**
- * Represents IPv6 address scopes
- * @memberof Address6
- * @static
+ * All events that we relay to the `Topology`
+ * @internal
  */
-export const SCOPES: { [key: number]: string | undefined } = {
-  0: 'Reserved',
-  1: 'Interface local',
-  2: 'Link local',
-  4: 'Admin local',
-  5: 'Site local',
-  8: 'Organization local',
-  14: 'Global',
-  15: 'Reserved',
-} as const;
+export const SERVER_RELAY_EVENTS = Object.freeze([
+  SERVER_HEARTBEAT_STARTED,
+  SERVER_HEARTBEAT_SUCCEEDED,
+  SERVER_HEARTBEAT_FAILED,
+  COMMAND_STARTED,
+  COMMAND_SUCCEEDED,
+  COMMAND_FAILED,
+  ...CMAP_EVENTS
+] as const);
 
 /**
- * Represents IPv6 address types
- * @memberof Address6
- * @static
+ * All events we listen to from `Server` instances, but do not forward to the client
+ * @internal
  */
-export const TYPES: { [key: string]: string | undefined } = {
-  'ff01::1/128': 'Multicast (All nodes on this interface)',
-  'ff01::2/128': 'Multicast (All routers on this interface)',
-  'ff02::1/128': 'Multicast (All nodes on this link)',
-  'ff02::2/128': 'Multicast (All routers on this link)',
-  'ff05::2/128': 'Multicast (All routers in this site)',
-  'ff02::5/128': 'Multicast (OSPFv3 AllSPF routers)',
-  'ff02::6/128': 'Multicast (OSPFv3 AllDR routers)',
-  'ff02::9/128': 'Multicast (RIP routers)',
-  'ff02::a/128': 'Multicast (EIGRP routers)',
-  'ff02::d/128': 'Multicast (PIM routers)',
-  'ff02::16/128': 'Multicast (MLDv2 reports)',
-  'ff01::fb/128': 'Multicast (mDNSv6)',
-  'ff02::fb/128': 'Multicast (mDNSv6)',
-  'ff05::fb/128': 'Multicast (mDNSv6)',
-  'ff02::1:2/128': 'Multicast (All DHCP servers and relay agents on this link)',
-  'ff05::1:2/128': 'Multicast (All DHCP servers and relay agents in this site)',
-  'ff02::1:3/128': 'Multicast (All DHCP servers on this link)',
-  'ff05::1:3/128': 'Multicast (All DHCP servers in this site)',
-  '::/128': 'Unspecified',
-  '::1/128': 'Loopback',
-  'ff00::/8': 'Multicast',
-  'fe80::/10': 'Link-local unicast',
-} as const;
+export const LOCAL_SERVER_EVENTS = Object.freeze([
+  CONNECT,
+  DESCRIPTION_RECEIVED,
+  CLOSED,
+  ENDED
+] as const);
+
+/** @public */
+export const MONGO_CLIENT_EVENTS = Object.freeze([
+  ...CMAP_EVENTS,
+  ...APM_EVENTS,
+  ...TOPOLOGY_EVENTS,
+  ...HEARTBEAT_EVENTS
+] as const);
 
 /**
- * A regular expression that matches bad characters in an IPv6 address
- * @memberof Address6
- * @static
+ * @internal
+ * The legacy hello command that was deprecated in MongoDB 5.0.
  */
-export const RE_BAD_CHARACTERS = /([^0-9a-f:/%])/gi;
+export const LEGACY_HELLO_COMMAND = 'ismaster';
 
 /**
- * A regular expression that matches an incorrect IPv6 address
- * @memberof Address6
- * @static
+ * @internal
+ * The legacy hello command that was deprecated in MongoDB 5.0.
  */
-export const RE_BAD_ADDRESS = /([0-9a-f]{5,}|:{3,}|[^:]:$|^:[^:]|\/$)/gi;
-
-/**
- * A regular expression that matches an IPv6 subnet
- * @memberof Address6
- * @static
- */
-export const RE_SUBNET_STRING = /\/\d{1,3}(?=%|$)/;
-
-/**
- * A regular expression that matches an IPv6 zone
- * @memberof Address6
- * @static
- */
-export const RE_ZONE_STRING = /%.*$/;
-
-export const RE_URL = /^\[{0,1}([0-9a-f:]+)\]{0,1}/;
-export const RE_URL_WITH_PORT = /\[([0-9a-f:]+)\]:([0-9]{1,5})/;
+export const LEGACY_HELLO_COMMAND_CAMEL_CASE = 'isMaster';

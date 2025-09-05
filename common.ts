@@ -1,55 +1,79 @@
-import { Address4 } from './ipv4';
-import { Address6 } from './ipv6';
+import { clearTimeout } from 'timers';
 
-export interface ReverseFormOptions {
-  omitSuffix?: boolean;
+import type { Binary, Long, Timestamp } from '../bson';
+import type { ClientSession } from '../sessions';
+import type { Topology } from './topology';
+
+// shared state names
+export const STATE_CLOSING = 'closing';
+export const STATE_CLOSED = 'closed';
+export const STATE_CONNECTING = 'connecting';
+export const STATE_CONNECTED = 'connected';
+
+/**
+ * An enumeration of topology types we know about
+ * @public
+ */
+export const TopologyType = Object.freeze({
+  Single: 'Single',
+  ReplicaSetNoPrimary: 'ReplicaSetNoPrimary',
+  ReplicaSetWithPrimary: 'ReplicaSetWithPrimary',
+  Sharded: 'Sharded',
+  Unknown: 'Unknown',
+  LoadBalanced: 'LoadBalanced'
+} as const);
+
+/** @public */
+export type TopologyType = (typeof TopologyType)[keyof typeof TopologyType];
+
+/**
+ * An enumeration of server types we know about
+ * @public
+ */
+export const ServerType = Object.freeze({
+  Standalone: 'Standalone',
+  Mongos: 'Mongos',
+  PossiblePrimary: 'PossiblePrimary',
+  RSPrimary: 'RSPrimary',
+  RSSecondary: 'RSSecondary',
+  RSArbiter: 'RSArbiter',
+  RSOther: 'RSOther',
+  RSGhost: 'RSGhost',
+  Unknown: 'Unknown',
+  LoadBalancer: 'LoadBalancer'
+} as const);
+
+/** @public */
+export type ServerType = (typeof ServerType)[keyof typeof ServerType];
+
+/** @internal */
+export type TimerQueue = Set<NodeJS.Timeout>;
+
+/** @internal */
+export function drainTimerQueue(queue: TimerQueue): void {
+  queue.forEach(clearTimeout);
+  queue.clear();
 }
 
-export function isInSubnet(this: Address4 | Address6, address: Address4 | Address6) {
-  if (this.subnetMask < address.subnetMask) {
-    return false;
-  }
-
-  if (this.mask(address.subnetMask) === address.mask()) {
-    return true;
-  }
-
-  return false;
-}
-
-export function isCorrect(defaultBits: number) {
-  return function (this: Address4 | Address6) {
-    if (this.addressMinusSuffix !== this.correctForm()) {
-      return false;
-    }
-
-    if (this.subnetMask === defaultBits && !this.parsedSubnet) {
-      return true;
-    }
-
-    return this.parsedSubnet === String(this.subnetMask);
+/** @public */
+export interface ClusterTime {
+  clusterTime: Timestamp;
+  signature: {
+    hash: Binary;
+    keyId: Long;
   };
 }
 
-export function numberToPaddedHex(number: number) {
-  return number.toString(16).padStart(2, '0');
-}
-
-export function stringToPaddedHex(numberString: string) {
-  return numberToPaddedHex(parseInt(numberString, 10));
-}
-
-/**
- * @param binaryValue Binary representation of a value (e.g. `10`)
- * @param position Byte position, where 0 is the least significant bit
- */
-export function testBit(binaryValue: string, position: number): boolean {
-  const { length } = binaryValue;
-
-  if (position > length) {
-    return false;
+/** Shared function to determine clusterTime for a given topology or session */
+export function _advanceClusterTime(
+  entity: Topology | ClientSession,
+  $clusterTime: ClusterTime
+): void {
+  if (entity.clusterTime == null) {
+    entity.clusterTime = $clusterTime;
+  } else {
+    if ($clusterTime.clusterTime.greaterThan(entity.clusterTime.clusterTime)) {
+      entity.clusterTime = $clusterTime;
+    }
   }
-
-  const positionInString = length - position;
-  return binaryValue.substring(positionInString, positionInString + 1) === '1';
 }
