@@ -1,21 +1,45 @@
+export declare const BITS = 128;
+export declare const GROUPS = 8;
 /**
- * @deprecated The `node:constants` module is deprecated. When requiring access to constants
- * relevant to specific Node.js builtin modules, developers should instead refer
- * to the `constants` property exposed by the relevant module. For instance,
- * `require('node:fs').constants` and `require('node:os').constants`.
+ * Represents IPv6 address scopes
+ * @memberof Address6
+ * @static
  */
-declare module "constants" {
-    const constants:
-        & typeof import("node:os").constants.dlopen
-        & typeof import("node:os").constants.errno
-        & typeof import("node:os").constants.priority
-        & typeof import("node:os").constants.signals
-        & typeof import("node:fs").constants
-        & typeof import("node:crypto").constants;
-    export = constants;
-}
-
-declare module "node:constants" {
-    import constants = require("constants");
-    export = constants;
-}
+export declare const SCOPES: {
+    [key: number]: string | undefined;
+};
+/**
+ * Represents IPv6 address types
+ * @memberof Address6
+ * @static
+ */
+export declare const TYPES: {
+    [key: string]: string | undefined;
+};
+/**
+ * A regular expression that matches bad characters in an IPv6 address
+ * @memberof Address6
+ * @static
+ */
+export declare const RE_BAD_CHARACTERS: RegExp;
+/**
+ * A regular expression that matches an incorrect IPv6 address
+ * @memberof Address6
+ * @static
+ */
+export declare const RE_BAD_ADDRESS: RegExp;
+/**
+ * A regular expression that matches an IPv6 subnet
+ * @memberof Address6
+ * @static
+ */
+export declare const RE_SUBNET_STRING: RegExp;
+/**
+ * A regular expression that matches an IPv6 zone
+ * @memberof Address6
+ * @static
+ */
+export declare const RE_ZONE_STRING: RegExp;
+export declare const RE_URL: RegExp;
+export declare const RE_URL_WITH_PORT: RegExp;
+//# sourceMappingURL=constants.d.ts.map

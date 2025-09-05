@@ -1,3 +1,3 @@
-declare function hasSymbolShams(): boolean;
+declare function hasToStringTagShams(): boolean;
 
-export = hasSymbolShams;
+export = hasToStringTagShams;
