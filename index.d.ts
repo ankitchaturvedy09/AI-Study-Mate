@@ -1,24 +1,17 @@
-/*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License.
- *  REQUIREMENT: This definition is dependent on the @types/node definition.
- *  Install with `npm install @types/node --save-dev`
- *--------------------------------------------------------------------------------------------*/
+/**
+Check if a file path is a binary file.
 
-declare module 'iconv-lite' {
-	export function decode(buffer: Buffer, encoding: string, options?: Options): string;
+@example
+```
+import isBinaryPath = require('is-binary-path');
 
-	export function encode(content: string, encoding: string, options?: Options): Buffer;
+isBinaryPath('source/unicorn.png');
+//=> true
 
-	export function encodingExists(encoding: string): boolean;
+isBinaryPath('source/unicorn.txt');
+//=> false
+```
+*/
+declare function isBinaryPath(filePath: string): boolean;
 
-	export function decodeStream(encoding: string, options?: Options): NodeJS.ReadWriteStream;
-
-	export function encodeStream(encoding: string, options?: Options): NodeJS.ReadWriteStream;
-}
-
-export interface Options {
-    stripBOM?: boolean;
-    addBOM?: boolean;
-    defaultEncoding?: string;
-}
+export = isBinaryPath;

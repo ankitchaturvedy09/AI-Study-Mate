@@ -1,12 +1,69 @@
-'use strict'
+/*!
+ * methods
+ * Copyright(c) 2013-2014 TJ Holowaychuk
+ * Copyright(c) 2015-2016 Douglas Christopher Wilson
+ * MIT Licensed
+ */
 
-exports.directories = function () {
+'use strict';
+
+/**
+ * Module dependencies.
+ * @private
+ */
+
+var http = require('http');
+
+/**
+ * Module exports.
+ * @public
+ */
+
+module.exports = getCurrentNodeMethods() || getBasicNodeMethods();
+
+/**
+ * Get the current Node.js methods.
+ * @private
+ */
+
+function getCurrentNodeMethods() {
+  return http.METHODS && http.METHODS.map(function lowerCaseMethod(method) {
+    return method.toLowerCase();
+  });
+}
+
+/**
+ * Get the "basic" Node.js methods, a snapshot from Node.js 0.10.
+ * @private
+ */
+
+function getBasicNodeMethods() {
   return [
-    '.git', // Git repository files, see <https://git-scm.com/>
-    '.nyc_output', // Temporary directory where nyc stores coverage data, see <https://github.com/bcoe/nyc>
-    '.sass-cache', // Cache folder for node-sass, see <https://github.com/sass/node-sass>
-    'bower_components', // Where Bower packages are installed, see <http://bower.io/>
-    'coverage', // Standard output directory for code coverage reports, see <https://github.com/gotwarlost/istanbul>
-    'node_modules' // Where Node modules are installed, see <https://nodejs.org/>
-  ]
+    'get',
+    'post',
+    'put',
+    'head',
+    'delete',
+    'options',
+    'trace',
+    'copy',
+    'lock',
+    'mkcol',
+    'move',
+    'purge',
+    'propfind',
+    'proppatch',
+    'unlock',
+    'report',
+    'mkactivity',
+    'checkout',
+    'merge',
+    'm-search',
+    'notify',
+    'subscribe',
+    'unsubscribe',
+    'patch',
+    'search',
+    'connect'
+  ];
 }

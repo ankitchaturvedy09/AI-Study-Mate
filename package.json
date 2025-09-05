@@ -1,35 +1,44 @@
 {
-  "name": "ipaddr.js",
-  "description": "A library for manipulating IPv4 and IPv6 addresses in JavaScript.",
-  "version": "1.9.1",
-  "author": "whitequark <whitequark@whitequark.org>",
-  "directories": {
-    "lib": "./lib"
+  "author": {
+    "name": "Robert Kieffer",
+    "url": "http://github.com/broofa",
+    "email": "robert@broofa.com"
   },
+  "bin": {
+    "mime": "cli.js"
+  },
+  "engines": {
+    "node": ">=4"
+  },
+  "contributors": [
+    {
+      "name": "Benjamin Thomas",
+      "url": "http://github.com/bentomas",
+      "email": "benjamin@benjaminthomas.org"
+    }
+  ],
+  "description": "A comprehensive library for mime-type mapping",
+  "license": "MIT",
   "dependencies": {},
   "devDependencies": {
-    "coffee-script": "~1.12.6",
-    "nodeunit": "^0.11.3",
-    "uglify-js": "~3.0.19"
+    "github-release-notes": "0.13.1",
+    "mime-db": "1.31.0",
+    "mime-score": "1.1.0"
   },
   "scripts": {
-    "test": "cake build test"
+    "prepare": "node src/build.js",
+    "changelog": "gren changelog --tags=all --generate --override",
+    "test": "node src/test.js"
   },
-  "files": [
-    "lib/",
-    "LICENSE",
-    "ipaddr.min.js"
-  ],
   "keywords": [
-    "ip",
-    "ipv4",
-    "ipv6"
+    "util",
+    "mime"
   ],
-  "repository": "git://github.com/whitequark/ipaddr.js",
-  "main": "./lib/ipaddr.js",
-  "engines": {
-    "node": ">= 0.10"
+  "main": "mime.js",
+  "name": "mime",
+  "repository": {
+    "url": "https://github.com/broofa/node-mime",
+    "type": "git"
   },
-  "license": "MIT",
-  "types": "./lib/ipaddr.js.d.ts"
+  "version": "1.6.0"
 }

@@ -1,70 +1,34 @@
-# has-flag [![Build Status](https://travis-ci.org/sindresorhus/has-flag.svg?branch=master)](https://travis-ci.org/sindresorhus/has-flag)
+# is-binary-path [![Build Status](https://travis-ci.org/sindresorhus/is-binary-path.svg?branch=master)](https://travis-ci.org/sindresorhus/is-binary-path)
 
-> Check if [`argv`](https://nodejs.org/docs/latest/api/process.html#process_process_argv) has a specific flag
-
-Correctly stops looking after an `--` argument terminator.
+> Check if a file path is a binary file
 
 
 ## Install
 
 ```
-$ npm install has-flag
+$ npm install is-binary-path
 ```
 
 
 ## Usage
 
 ```js
-// foo.js
-const hasFlag = require('has-flag');
+const isBinaryPath = require('is-binary-path');
 
-hasFlag('unicorn');
+isBinaryPath('source/unicorn.png');
 //=> true
 
-hasFlag('--unicorn');
-//=> true
-
-hasFlag('f');
-//=> true
-
-hasFlag('-f');
-//=> true
-
-hasFlag('foo=bar');
-//=> true
-
-hasFlag('foo');
-//=> false
-
-hasFlag('rainbow');
+isBinaryPath('source/unicorn.txt');
 //=> false
 ```
 
-```
-$ node foo.js -f --unicorn --foo=bar -- --rainbow
-```
 
+## Related
 
-## API
-
-### hasFlag(flag, [argv])
-
-Returns a boolean for whether the flag exists.
-
-#### flag
-
-Type: `string`
-
-CLI flag to look for. The `--` prefix is optional.
-
-#### argv
-
-Type: `string[]`<br>
-Default: `process.argv`
-
-CLI arguments.
+- [binary-extensions](https://github.com/sindresorhus/binary-extensions) - List of binary file extensions
+- [is-text-path](https://github.com/sindresorhus/is-text-path) - Check if a filepath is a text file
 
 
 ## License
 
-MIT © [Sindre Sorhus](https://sindresorhus.com)
+MIT © [Sindre Sorhus](https://sindresorhus.com), [Paul Miller](https://paulmillr.com)
